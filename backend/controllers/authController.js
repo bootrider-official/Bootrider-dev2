@@ -5,11 +5,15 @@ import axios from "axios";
 
 dotenv.config();
 
-const otpSessions = {}; // temporary in-memory OTP storage
+const otpSessions = {}; // temporary store for OTP sessions
 
 // ✅ Send OTP
 export const sendOtp = async (req, res) => {
   const { phone, type, name, email, role } = req.body;
+  const user = await User.findOne({ phone });
+  if (type === "login" && !user) {
+      return res.status(400).json({ message: "User not found. Please sign up first." });
+    }
 
   try {
     const response = await axios.get(
@@ -21,6 +25,7 @@ export const sendOtp = async (req, res) => {
       otpSessions[sessionId] = { phone, type, name, email, role };
 
       res.status(200).json({
+        success: true,
         message: "OTP sent successfully",
         sessionId,
       });
@@ -48,13 +53,14 @@ export const verifyOtp = async (req, res) => {
         return res.status(400).json({ message: "Session expired or invalid" });
 
       const { phone, type, name, email, role } = session;
-      let user = await User.findOne({ phoneNumber: phone });
+      let user = await User.findOne({ phone });
 
       if (type === "signup") {
         if (user)
           return res
             .status(400)
             .json({ message: "User already exists, please login." });
+
         if (!name || !role)
           return res
             .status(400)
@@ -62,7 +68,7 @@ export const verifyOtp = async (req, res) => {
 
         user = await User.create({
           name,
-          phoneNumber: phone,
+          phone,
           email: email || "",
           role,
         });
@@ -79,6 +85,7 @@ export const verifyOtp = async (req, res) => {
       delete otpSessions[sessionId];
 
       res.status(200).json({
+        success: true,
         message: "OTP verified successfully",
         token,
         user,
@@ -99,6 +106,5 @@ export const logout = (req, res) => {
     sameSite: "strict",
     secure: process.env.NODE_ENV !== "development",
   });
-
   res.status(200).json({ message: "Logged out successfully" });
 };
