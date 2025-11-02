@@ -5,7 +5,11 @@ import cors from "cors";
 import morgan from "morgan";
 import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import rideRoutes from "./routes/rideRoutes.js";
+
 dotenv.config();
+// console.log("Cloudinary:", process.env.CLOUDINARY_CLOUD_NAME);
+
 
 const app = express();
 
@@ -17,6 +21,7 @@ app.use(morgan("dev"));
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/ride", rideRoutes);
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URL)
   .then(() => console.log("✅ MongoDB Connected"))

@@ -3,6 +3,7 @@ import axios from "axios";
 import { BASE_URL } from "../utils/constants";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../redux/authSlice";
+import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -18,13 +19,12 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  // handle input
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // send otp
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -49,7 +49,6 @@ const Signup = () => {
     }
   };
 
-  // verify otp (complete signup)
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -63,8 +62,10 @@ const Signup = () => {
 
       setMessage(res.data.message || "Signup successful!");
       localStorage.setItem("token", res.data.token);
-      dispatch(loginSuccess(res.data.token));
-      // redirect or update app state here if needed
+      dispatch(loginSuccess({ user: res.data.user, token: res.data.token }));
+
+      // ✅ Redirect after successful signup
+      navigate("/");
     } catch (err) {
       setMessage(err.response?.data?.message || "Invalid OTP");
     } finally {
@@ -73,9 +74,9 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-semibold mb-6 text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-300">
+      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">
           {otpSent ? "Verify OTP" : "Sign Up"}
         </h2>
 
@@ -92,7 +93,7 @@ const Signup = () => {
                 placeholder="Full Name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full p-2 mb-3 border rounded-md"
+                className="w-full p-2 mb-3 border rounded-md focus:ring-2 focus:ring-blue-400"
                 required
               />
               <input
@@ -101,7 +102,7 @@ const Signup = () => {
                 placeholder="Email Address"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full p-2 mb-3 border rounded-md"
+                className="w-full p-2 mb-3 border rounded-md focus:ring-2 focus:ring-blue-400"
                 required
               />
               <input
@@ -110,14 +111,14 @@ const Signup = () => {
                 placeholder="Mobile Number"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full p-2 mb-3 border rounded-md"
+                className="w-full p-2 mb-3 border rounded-md focus:ring-2 focus:ring-blue-400"
                 required
               />
               <select
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
-                className="w-full p-2 mb-3 border rounded-md"
+                className="w-full p-2 mb-3 border rounded-md focus:ring-2 focus:ring-blue-400"
               >
                 <option value="individual">Individual</option>
                 <option value="transporter">Transporter</option>
@@ -134,7 +135,7 @@ const Signup = () => {
                 placeholder="Enter OTP"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
-                className="w-full p-2 mb-3 border rounded-md"
+                className="w-full p-2 mb-3 border rounded-md focus:ring-2 focus:ring-blue-400"
                 required
               />
             </>
@@ -142,7 +143,7 @@ const Signup = () => {
 
           <button
             type="submit"
-            className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition duration-200"
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-200"
             disabled={loading}
           >
             {loading
@@ -156,7 +157,7 @@ const Signup = () => {
         {!otpSent && (
           <p className="text-center mt-4 text-sm text-gray-600">
             Already have an account?{" "}
-            <a href="/login" className="text-green-600 font-semibold">
+            <a href="/login" className="text-blue-700 font-semibold">
               Login
             </a>
           </p>

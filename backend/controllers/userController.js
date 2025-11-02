@@ -1,117 +1,55 @@
 import User from "../models/User.js";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
+import getDataUri from "../utils/datauri.js";
+import cloudinary from "../config/cloudinary.js";
 
-dotenv.config();
+// Create or update transporter profile
+export const createOrUpdateTransporterProfile = async (req, res) => {
 
-// 🔹 Generate JWT token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-};
 
-// 🟢 REGISTER new user
-export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, phone, role } = req.body;
+    const userId = req.user.id; // from auth middleware
+    const { vehicleType, registrationNo } = req.body;
+    const file = req.file;
+        const fileUri = getDataUri(file);
+
+        const cloudResponse= await cloudinary.uploader.upload(fileUri.content);
+    // const photoUrl = req.file?.path; // Cloudinary auto adds this
 
     // Check if user exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: "User already exists" });
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    // Ensure user role is transporter
+    if (user.role !== "transporter") {
+      return res.status(403).json({ message: "Only transporters can create a profile" });
+    }
 
-    // Create user
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      phone,
-      role
-    });
+    // Update profile with Cloudinary photo
+    user.vehicleInfo = {
+      vehicleType,
+      registrationNo,
+      photo: cloudResponse.secure_url || user.vehicleInfo.photo, // keep old if not updated
+    };
 
-    const token = generateToken(user._id);
+    user.kycStatus = "pending"; // will change to "verified" after admin check
 
-    res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-      token,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// 🟡 LOGIN user
-export const loginUser = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
-
-    const token = generateToken(user._id);
-
-    res.status(200).json({
-      success: true,
-      message: "Login successful",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-      token,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// 🔵 GET logged-in user
-export const getProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select("-password");
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// 🟣 UPDATE profile
-export const updateProfile = async (req, res) => {
-  try {
-    const updates = req.body;
-    const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true }).select("-password");
-    res.json({ message: "Profile updated successfully", user });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// 🟤 KYC Upload (for future expansion)
-export const uploadKYC = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    user.kycStatus = "verified"; // simulate verification
     await user.save();
 
-    res.json({ message: "KYC uploaded successfully", user });
+    res.status(200).json({
+      message: "Transporter profile updated successfully",
+      user,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  console.error("❌ Error updating transporter profile:");
+  console.error("Message:", error.message);
+  console.error("Stack:", error.stack);
+  console.error("Full error object:", JSON.stringify(error, null, 2));
+
+  res.status(500).json({ 
+    message: "Server error updating transporter profile", 
+    error: error.message 
+  });
+}
 };

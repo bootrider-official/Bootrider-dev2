@@ -1,21 +1,11 @@
 import express from "express";
-import {
-  registerUser,
-  loginUser,
-  getProfile,
-  updateProfile,
-  uploadKYC,
-} from "../controllers/userController.js";
+import { createOrUpdateTransporterProfile } from "../controllers/userController.js";
 import { protect } from "../middlewares/authMiddleware.js";
+// import { upload } from "../config/cloudinary.js";
+import { singleUpload } from "../middlewares/multer.js";
+
 const router = express.Router();
 
-// Public routes
-router.post("/signup", registerUser);
-router.post("/login", loginUser);
 
-// Protected routes
-router.get("/me", protect, getProfile);
-router.put("/update", protect, updateProfile);
-router.post("/kyc", protect, uploadKYC);
-
+router.post("/transporter/profile", protect, singleUpload, createOrUpdateTransporterProfile);
 export default router;

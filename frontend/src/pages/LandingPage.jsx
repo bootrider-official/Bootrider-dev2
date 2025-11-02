@@ -1,56 +1,156 @@
-import React from "react";
-import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Select from "react-select";
 
 const LandingPage = () => {
-  const token = useSelector((state) => state.auth.token);
+  const [cities, setCities] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    from: "",
+    to: "",
+    date: "",
+    passengers: 1,
+  });
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchCities = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          "https://countriesnow.space/api/v0.1/countries/cities",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ country: "India" }),
+          }
+        );
+        const data = await res.json();
+        const formattedCities = data.data.map((city) => ({
+          value: city,
+          label: city,
+        }));
+        setCities(formattedCities);
+      } catch (error) {
+        console.error("Error fetching cities:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCities();
+  }, []);
+
+  const handleChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    navigate(
+      `/search-results?from=${formData.from.value}&to=${formData.to.value}&date=${formData.date}&passengers=${formData.passengers}`
+    );
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 via-white to-blue-100 text-gray-800">
-      {/* Hero Section */}
-      <header className="w-full py-20 px-6 text-center bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white shadow-lg">
-        <h1 className="text-6xl font-extrabold mb-4 tracking-tight drop-shadow-md">
+      {/* Hero Section with Search */}
+      <header className="w-full py-24 px-6 text-center bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white shadow-lg">
+        <h1 className="text-6xl font-extrabold mb-6 tracking-tight drop-shadow-md">
           BootRider
         </h1>
-        <p className="text-xl max-w-3xl mx-auto leading-relaxed mb-8">
-          Connecting people, parcels, and possibilities.  
+        <p className="text-xl max-w-3xl mx-auto leading-relaxed mb-10">
+          Find rides and deliveries faster than ever before.
           <br />
           <span className="font-semibold text-blue-200">
-            Carpool smarter. Deliver faster. Earn effortlessly.
+            Smart carpooling and seamless parcel delivery.
           </span>
         </p>
 
-        {token ? (
-          <div className="flex justify-center gap-6">
-            <Link
-              to="/rides"
-              className="bg-white text-blue-700 px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 hover:bg-blue-50 transition-all"
-            >
-              Find a Ride
-            </Link>
-            <Link
-              to="/parcels"
-              className="bg-blue-500 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 hover:bg-blue-600 transition-all"
-            >
-              Send a Parcel
-            </Link>
+        {/* Search Form */}
+        <form
+          onSubmit={handleSearch}
+          className="bg-white rounded-2xl shadow-xl p-6 md:p-10 max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-4 md:gap-6"
+        >
+          <div className="w-full md:flex-1">
+            <label className="block text-sm font-semibold text-gray-600 mb-2">
+              From
+            </label>
+            <Select
+              options={cities}
+              isLoading={loading}
+              onChange={(value) => handleChange("from", value)}
+              placeholder="Select city"
+              className="text-gray-700"
+            />
           </div>
-        ) : (
-          <div className="flex justify-center gap-6">
-            <Link
-              to="/signup"
-              className="bg-white text-blue-700 px-8 py-3 rounded-xl font-semibold shadow-lg hover:bg-blue-50 transition-all"
-            >
-              Sign Up
-            </Link>
-            <Link
-              to="/login"
-              className="border-2 border-white px-8 py-3 rounded-xl font-semibold hover:bg-white hover:text-blue-700 transition-all"
-            >
-              Log In
-            </Link>
+
+          <div className="w-full md:flex-1">
+            <label className="block text-sm font-semibold text-gray-600 mb-2">
+              To
+            </label>
+            <Select
+              options={cities}
+              isLoading={loading}
+              onChange={(value) => handleChange("to", value)}
+              placeholder="Select city"
+              className="text-gray-700"
+            />
           </div>
-        )}
+
+          <div className="w-full md:w-40">
+            <label className="block text-sm font-semibold text-gray-600 mb-2">
+              Date
+            </label>
+            <input
+              type="date"
+              value={formData.date}
+              onChange={(e) => handleChange("date", e.target.value)}
+              className="w-full border border-gray-300 rounded-lg p-2 text-gray-700 focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          <div className="w-full md:w-40">
+            <label className="block text-sm font-semibold text-gray-600 mb-2">
+              Passengers
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={formData.passengers}
+              onChange={(e) =>
+                handleChange("passengers", Math.max(1, e.target.value))
+              }
+              className="w-full border border-gray-300 rounded-lg p-2 text-gray-700 focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="bg-blue-700 hover:bg-blue-800 text-white px-8 py-3 rounded-xl font-semibold shadow-md transition-all hover:scale-105"
+          >
+            Search
+          </button>
+        </form>
+
+        {/* Action Buttons */}
+        <div className="flex justify-center gap-6 mt-10">
+          <button
+            onClick={() => navigate("/create-rides")}
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-3 rounded-xl shadow-md transition-transform transform hover:scale-105"
+          >
+            🚗 Create Ride
+          </button>
+          <button
+            onClick={() => navigate("/send-parcel")}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-8 py-3 rounded-xl shadow-md transition-transform transform hover:scale-105"
+          >
+            📦 Send Parcel
+          </button>
+        </div>
       </header>
 
       {/* About Section */}
@@ -59,101 +159,21 @@ const LandingPage = () => {
           What is BootRider?
         </h2>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-          BootRider is your all-in-one mobility and delivery platform. Whether you want to
-          <span className="font-semibold text-blue-700"> carpool</span> to work or
-          <span className="font-semibold text-blue-700"> send a parcel</span> across town,
-          BootRider connects you with verified drivers headed in your direction — optimizing time,
-          cost, and environmental impact.
+          BootRider is your all-in-one mobility and delivery platform. Whether
+          you want to
+          <span className="font-semibold text-blue-700"> carpool</span> to work
+          or
+          <span className="font-semibold text-blue-700"> send a parcel</span>{" "}
+          across town, BootRider connects you with verified drivers headed your
+          way — optimizing time, cost, and environmental impact.
         </p>
-      </section>
-
-      {/* Features Section */}
-      <section className="bg-gradient-to-r from-blue-100 to-blue-50 py-16 px-8">
-        <h2 className="text-3xl font-bold text-center text-blue-700 mb-12">
-          Why Choose BootRider?
-        </h2>
-        <div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-          {/* Feature 1 */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition">
-            <h3 className="text-2xl font-semibold text-blue-700 mb-3">
-              🚗 Smart Carpooling
-            </h3>
-            <p className="text-gray-600">
-              Save on travel costs by sharing rides with trusted drivers heading your way.
-              Reduce traffic, fuel use, and carbon emissions effortlessly.
-            </p>
-          </div>
-
-          {/* Feature 2 */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition">
-            <h3 className="text-2xl font-semibold text-blue-700 mb-3">
-              📦 Parcel Delivery Made Easy
-            </h3>
-            <p className="text-gray-600">
-              Send packages safely using spare boot space. Track deliveries and get real-time
-              updates — all within the same app.
-            </p>
-          </div>
-
-          {/* Feature 3 */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition">
-            <h3 className="text-2xl font-semibold text-blue-700 mb-3">
-              💰 Earn on the Go
-            </h3>
-            <p className="text-gray-600">
-              Drivers can accept ride or parcel requests, making every trip more rewarding.
-              Drive smarter — not farther.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Dual CTA Section */}
-      <section className="py-20 px-8 text-center">
-        <h2 className="text-4xl font-bold text-blue-700 mb-8">
-          Ready to Ride or Deliver?
-        </h2>
-        <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
-          Join the growing BootRider community and experience a new way of mobility.
-        </p>
-
-        {token ? (
-          <div className="flex justify-center gap-6">
-            <Link
-              to="/rides"
-              className="bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition"
-            >
-              Explore Rides
-            </Link>
-            <Link
-              to="/parcels"
-              className="bg-white border-2 border-blue-600 text-blue-700 px-8 py-3 rounded-xl font-semibold hover:bg-blue-50 transition"
-            >
-              Deliver Parcels
-            </Link>
-          </div>
-        ) : (
-          <div className="flex justify-center gap-6">
-            <Link
-              to="/signup"
-              className="bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition"
-            >
-              Get Started
-            </Link>
-            <Link
-              to="/login"
-              className="border-2 border-blue-600 text-blue-700 px-8 py-3 rounded-xl font-semibold hover:bg-blue-50 transition"
-            >
-              Log In
-            </Link>
-          </div>
-        )}
       </section>
 
       {/* Footer */}
       <footer className="bg-gradient-to-r from-blue-700 to-blue-900 text-white text-center py-6 mt-auto">
         <p className="text-sm opacity-90">
-          © {new Date().getFullYear()} BootRider — Drive • Deliver • Earn • Connect
+          © {new Date().getFullYear()} BootRider — Drive • Deliver • Earn •
+          Connect
         </p>
       </footer>
     </div>

@@ -6,8 +6,11 @@ const userSchema = new mongoose.Schema({
   password: { type: String }, // optional now
   phone: { type: String, required: true, unique: true },
   role: { type: String, enum: ["individual", "transporter"], default: "individual" },
-  kycStatus: { type: String, enum: ["pending", "verified"], default: "pending" },
-  vehicleInfo: {
+kycStatus: {
+  type: String,
+  enum: ["not_started", "pending", "verified"],
+  default: "not_started",
+},  vehicleInfo: {
     type: {
       vehicleType: String,
       registrationNo: String,

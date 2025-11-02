@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { BASE_URL } from "../utils/constants";
+import { BASE_URL } from "../utils/constants.jsx";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../redux/authSlice";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [phone, setPhone] = useState("");
@@ -12,6 +13,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // Step 1: Send OTP
   const handleSendOtp = async (e) => {
@@ -48,12 +50,15 @@ const Login = () => {
       });
 
       setMessage(res.data.message || "Login successful!");
-      dispatch(loginSuccess(res.data.token));
+      dispatch(loginSuccess({ user: res.data.user, token: res.data.token }));
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      // Optionally redirect user here
-      // window.location.href = "/dashboard";
+      // ✅ Redirect after successful login
+      const user = res.data.user;
+      // if (user.role === "transporter") navigate("/transporter-dashboard");
+      navigate("/");
+      
     } catch (err) {
       setMessage(err.response?.data?.message || "Invalid OTP");
     } finally {
@@ -62,9 +67,9 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-semibold mb-6 text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-300">
+      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">
           {otpSent ? "Verify OTP" : "Login"}
         </h2>
 
@@ -80,7 +85,7 @@ const Login = () => {
               placeholder="Mobile Number"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full p-2 mb-3 border rounded-md"
+              className="w-full p-2 mb-3 border rounded-md focus:ring-2 focus:ring-blue-400"
               required
             />
           ) : (
@@ -94,7 +99,7 @@ const Login = () => {
                 placeholder="Enter OTP"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
-                className="w-full p-2 mb-3 border rounded-md"
+                className="w-full p-2 mb-3 border rounded-md focus:ring-2 focus:ring-blue-400"
                 required
               />
             </>
@@ -102,7 +107,7 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition duration-200"
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-200"
             disabled={loading}
           >
             {loading
@@ -116,7 +121,7 @@ const Login = () => {
         {!otpSent && (
           <p className="text-center mt-4 text-sm text-gray-600">
             Don’t have an account?{" "}
-            <a href="/signup" className="text-green-600 font-semibold">
+            <a href="/signup" className="text-blue-700 font-semibold">
               Sign Up
             </a>
           </p>
