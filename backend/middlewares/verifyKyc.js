@@ -7,6 +7,7 @@ export const verifyKyc = (req, res, next) => {
     }
 
     if (user.kycStatus !== "verified") {
+      console.log(user.kycStatus);
       return res
         .status(403)
         .json({ message: "Access denied. KYC not verified." });
