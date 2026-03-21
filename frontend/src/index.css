@@ -1,3 +1,107 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ═══════════════════════════════════════════
+   SCROLL-TRIGGERED ANIMATIONS
+   ═══════════════════════════════════════════ */
+
+/* Base hidden state for all animated elements */
+.scroll-fade-up,
+.scroll-fade-in,
+.scroll-slide-left,
+.scroll-slide-right,
+.scroll-scale-up {
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.scroll-fade-up    { transform: translateY(50px); }
+.scroll-fade-in    { transform: none; }
+.scroll-slide-left { transform: translateX(-60px); }
+.scroll-slide-right{ transform: translateX(60px); }
+.scroll-scale-up   { transform: scale(0.92); }
+
+/* Visible state (added by IntersectionObserver) */
+.scroll-fade-up.visible,
+.scroll-fade-in.visible,
+.scroll-slide-left.visible,
+.scroll-slide-right.visible,
+.scroll-scale-up.visible {
+  opacity: 1;
+  transform: translateY(0) translateX(0) scale(1);
+}
+
+/* Staggered children — each child delays by its --i index */
+.stagger-children > * {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.stagger-children.visible > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+.stagger-children.visible > *:nth-child(1) { transition-delay: 0.05s; }
+.stagger-children.visible > *:nth-child(2) { transition-delay: 0.12s; }
+.stagger-children.visible > *:nth-child(3) { transition-delay: 0.19s; }
+.stagger-children.visible > *:nth-child(4) { transition-delay: 0.26s; }
+.stagger-children.visible > *:nth-child(5) { transition-delay: 0.33s; }
+
+/* ═══════════════════════════════════════════
+   KEYFRAME ANIMATIONS
+   ═══════════════════════════════════════════ */
+
+/* Hero entry animations */
+@keyframes hero-fade-down {
+  from { opacity: 0; transform: translateY(-30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes hero-fade-up {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes hero-scale-in {
+  from { opacity: 0; transform: scale(0.9) translateY(30px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.hero-animate-badge   { animation: hero-fade-down 0.8s 0.2s cubic-bezier(0.16,1,0.3,1) both; }
+.hero-animate-title   { animation: hero-fade-up   0.9s 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+.hero-animate-subtitle{ animation: hero-fade-up   0.8s 0.6s cubic-bezier(0.16,1,0.3,1) both; }
+.hero-animate-card    { animation: hero-scale-in  0.9s 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+.hero-animate-cta     { animation: hero-fade-up   0.7s 1.0s cubic-bezier(0.16,1,0.3,1) both; }
+.hero-animate-scroll  { animation: hero-fade-up   0.6s 1.3s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* Subtle floating animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+.animate-float { animation: float 4s ease-in-out infinite; }
+
+/* Count-up shimmer */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Smooth scroll globally */
+html { scroll-behavior: smooth; }
+
+/* Card lift effect */
+.card-hover {
+  transition: transform 0.35s cubic-bezier(0.16,1,0.3,1),
+              box-shadow 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.card-hover:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px -12px rgba(0,0,0,0.15);
+}
+
+/* Button press effect */
+.btn-press { transition: transform 0.15s ease; }
+.btn-press:active { transform: scale(0.97); }
