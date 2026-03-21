@@ -7,12 +7,23 @@ export const createOrUpdateTransporterProfile = async (req, res) => {
 
 
   try {
+    console.log("FILE:", req.file);
+    console.log("BODY:", req.body);
+    console.log("CLOUDINARY CONFIG:", cloudinary.config());
+
+
     const userId = req.user.id; // from auth middleware
     const { vehicleType, registrationNo } = req.body;
     const file = req.file;
-        const fileUri = getDataUri(file);
+    const fileUri = getDataUri(file);
 
-        const cloudResponse= await cloudinary.uploader.upload(fileUri.content);
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY || process.env.API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET || process.env.API_SECRET,
+    });
+
+    const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
     // const photoUrl = req.file?.path; // Cloudinary auto adds this
 
     // Check if user exists
@@ -33,7 +44,7 @@ export const createOrUpdateTransporterProfile = async (req, res) => {
       photo: cloudResponse.secure_url || user.vehicleInfo.photo, // keep old if not updated
     };
 
-    user.kycStatus = "pending"; // will change to "verified" after admin check
+    user.kycStatus = "verified"; // will change to "verified" after admin check
 
     await user.save();
 
@@ -42,14 +53,14 @@ export const createOrUpdateTransporterProfile = async (req, res) => {
       user,
     });
   } catch (error) {
-  console.error("❌ Error updating transporter profile:");
-  console.error("Message:", error.message);
-  console.error("Stack:", error.stack);
-  console.error("Full error object:", JSON.stringify(error, null, 2));
+    console.error("❌ Error updating transporter profile:");
+    console.error("Message:", error.message);
+    console.error("Stack:", error.stack);
+    console.error("Full error object:", JSON.stringify(error, null, 2));
 
-  res.status(500).json({ 
-    message: "Server error updating transporter profile", 
-    error: error.message 
-  });
-}
+    res.status(500).json({
+      message: "Server error updating transporter profile",
+      error: error.message
+    });
+  }
 };

@@ -106,12 +106,184 @@
 
 
 
-// backend/models/Ride.js
+// // backend/models/Ride.js
+// import mongoose from "mongoose";
+
+// // ===============================
+// // 📍 Request Schema
+// // ===============================
+// const requestSchema = new mongoose.Schema(
+//   {
+//     user: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "User",
+//       required: true,
+//     },
+//     seatsRequested: {
+//       type: Number,
+//       required: true,
+//       min: [1, "At least one seat must be requested"],
+//     },
+//     bookingPreference: {
+//   type: String,
+//   enum: ["instant", "review"],
+//   default: "review",
+// },
+
+//     status: {
+//       type: String,
+//       enum: ["pending", "approved", "rejected"],
+//       default: "pending",
+//     },
+//   },
+//   { timestamps: true }
+// );
+
+// // ===============================
+// // 📍 Location Subschema
+// // ===============================
+// const locationSchema = new mongoose.Schema(
+//   {
+//     name: {
+//       type: String,
+//       required: [true, "Location name is required"],
+//       trim: true,
+//     },
+//     coordinates: {
+//       lat: { type: Number, required: true },
+//       lng: { type: Number, required: true },
+//     },
+//   },
+//   { _id: false }
+// );
+
+// // ===============================
+// // 🚗 Ride Schema
+// // ===============================
+// const rideSchema = new mongoose.Schema(
+//   {
+//     driver: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "User",
+//       required: true,
+//     },
+
+//     from: {
+//       type: locationSchema,
+//       required: true,
+//     },
+
+//     to: {
+//       type: locationSchema,
+//       required: true,
+//     },
+
+//     stops: {
+//       type: [locationSchema],
+//       default: [],
+//     },
+
+//     date: {
+//       type: Date,
+//       required: [true, "Ride date is required"],
+//     },
+
+//     time: {
+//       type: String,
+//       required: [true, "Ride time is required"],
+//     },
+
+//     availableSeats: {
+//       type: Number,
+//       required: [true, "Available seats are required"],
+//       min: [0, "There must be at least one available seat"],
+//     },
+
+//     pricePerSeat: {
+//       type: Number,
+//       required: [true, "Price per seat is required"],
+//       min: [0, "Price must be non-negative"],
+//     },
+
+//     status: {
+//       type: String,
+//       enum: ["active", "completed", "cancelled"],
+//       default: "active",
+//     },
+
+//     requests: {
+//       type: [requestSchema],
+//       default: [],
+//     },
+
+//     passengers: {
+//       type: [
+//         {
+//           user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+//           seatsBooked: { type: Number, min: 1 },
+//         },
+//       ],
+//       default: [],
+//     },
+//   },
+//   {
+//     timestamps: true,
+//   }
+// );
+
+// // ===============================
+// // 🧠 Middleware & Virtuals (Optional)
+// // ===============================
+
+// // Example: Automatically calculate total booked seats
+// rideSchema.virtual("bookedSeats").get(function () {
+//   return this.passengers.reduce((acc, p) => acc + (p.seatsBooked || 0), 0);
+// });
+
+// // Optional: Exclude sensitive/internal fields from JSON responses
+// // rideSchema.set("toJSON", {
+// //   virtuals: true,
+// //   versionKey: false,
+// //   transform: (_, ret) => {
+// //     delete ret._id;
+// //     return ret;
+// //   },
+// // });
+
+// rideSchema.set("toJSON", {
+//   virtuals: true,
+//   versionKey: false,
+//   transform: (_, ret) => {
+//     ret.id = ret._id;   // 👈 Keep id field for frontend use
+//     delete ret._id;     // Optional: remove raw _id if you prefer clean output
+//     return ret;
+//   },
+// });
+
+
+// // ===============================
+// // ✅ Model Export
+// // ===============================
+// const Ride = mongoose.model("Ride", rideSchema);
+// export default Ride;
+
+
+
 import mongoose from "mongoose";
 
-// ===============================
-// 📍 Request Schema
-// ===============================
+// ── Location subschema ───────────────────────────────────────────────────────
+const locationSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    coordinates: {
+      lat: { type: Number, required: true },
+      lng: { type: Number, required: true },
+    },
+  },
+  { _id: false }
+);
+
+// ── Request subschema ────────────────────────────────────────────────────────
 const requestSchema = new mongoose.Schema(
   {
     user: {
@@ -121,15 +293,9 @@ const requestSchema = new mongoose.Schema(
     },
     seatsRequested: {
       type: Number,
-      required: true,
-      min: [1, "At least one seat must be requested"],
+      default: 0,
+      min: 0,
     },
-    bookingPreference: {
-  type: String,
-  enum: ["instant", "review"],
-  default: "review",
-},
-
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],
@@ -139,27 +305,36 @@ const requestSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ===============================
-// 📍 Location Subschema
-// ===============================
-const locationSchema = new mongoose.Schema(
+// ── Boot space subschema ─────────────────────────────────────────────────────
+const bootSpaceSchema = new mongoose.Schema(
   {
-    name: {
+    // Fixed prices per parcel size
+    smallPrice: { type: Number, default: null },   // up to 2kg
+    mediumPrice: { type: Number, default: null },  // up to 10kg
+    largePrice: { type: Number, default: null },   // up to 20kg
+
+    maxWeightKg: { type: Number, default: null },  // total boot capacity
+
+    fragileAccepted: { type: Boolean, default: false },
+
+    pickupFlexibility: {
       type: String,
-      required: [true, "Location name is required"],
-      trim: true,
+      enum: ["start_only", "any_stop"],
+      default: "start_only",
     },
-    coordinates: {
-      lat: { type: Number, required: true },
-      lng: { type: Number, required: true },
+
+    allowedGoods: {
+      type: [String],
+      enum: ["Documents", "Clothes", "Food (Sealed)", "Electronics", "Other"],
+      default: [],
     },
+
+    bootDescription: { type: String, default: "" },
   },
   { _id: false }
 );
 
-// ===============================
-// 🚗 Ride Schema
-// ===============================
+// ── Main ride schema ─────────────────────────────────────────────────────────
 const rideSchema = new mongoose.Schema(
   {
     driver: {
@@ -168,53 +343,55 @@ const rideSchema = new mongoose.Schema(
       required: true,
     },
 
-    from: {
-      type: locationSchema,
-      required: true,
-    },
+    from: { type: locationSchema, required: true },
+    to: { type: locationSchema, required: true },
+    stops: { type: [locationSchema], default: [] },
 
-    to: {
-      type: locationSchema,
-      required: true,
-    },
-
-    stops: {
-      type: [locationSchema],
-      default: [],
-    },
-
-    date: {
-      type: Date,
-      required: [true, "Ride date is required"],
-    },
-
-    time: {
-      type: String,
-      required: [true, "Ride time is required"],
-    },
+    date: { type: Date, required: true },
+    time: { type: String, required: true },
 
     availableSeats: {
       type: Number,
-      required: [true, "Available seats are required"],
-      min: [0, "There must be at least one available seat"],
+      required: true,
+      min: 0,
     },
 
     pricePerSeat: {
       type: Number,
-      required: [true, "Price per seat is required"],
-      min: [0, "Price must be non-negative"],
+      required: true,
+      min: 0,
     },
 
+    vehicleDetails: {
+      type: { type: String, default: null },
+      model: { type: String, default: null },
+      color: { type: String, default: null },
+      plateNumber: { type: String, default: null },
+    },
+
+    bookingPreference: {
+      type: String,
+      enum: ["instant", "review"],
+      default: "review",
+    },
+
+    // ── Boot space (optional) ────────────────────
+    acceptsParcels: { type: Boolean, default: false },
+    bootSpace: { type: bootSpaceSchema, default: null },
+
+    // ── Status ───────────────────────────────────
     status: {
       type: String,
       enum: ["active", "completed", "cancelled"],
       default: "active",
     },
 
-    requests: {
-      type: [requestSchema],
-      default: [],
-    },
+    // ── Timestamps for lifecycle ─────────────────
+    completedAt: { type: Date, default: null },
+    deletedAt: { type: Date, default: null },    // soft delete
+
+    // ── Relations ────────────────────────────────
+    requests: { type: [requestSchema], default: [] },
 
     passengers: {
       type: [
@@ -226,43 +403,34 @@ const rideSchema = new mongoose.Schema(
       default: [],
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-// ===============================
-// 🧠 Middleware & Virtuals (Optional)
-// ===============================
+// ── Indexes ──────────────────────────────────────────────────────────────────
+rideSchema.index({ "from.coordinates.lat": 1, "from.coordinates.lng": 1 });
+rideSchema.index({ "to.coordinates.lat": 1, "to.coordinates.lng": 1 });
+rideSchema.index({ date: 1, status: 1 });
 
-// Example: Automatically calculate total booked seats
+// ── Filter soft-deleted rides from all queries ───────────────────────────────
+rideSchema.pre(/^find/, function (next) {
+  this.where({ deletedAt: null });
+  next();
+});
+
+// ── Virtual: total booked seats ──────────────────────────────────────────────
 rideSchema.virtual("bookedSeats").get(function () {
   return this.passengers.reduce((acc, p) => acc + (p.seatsBooked || 0), 0);
 });
-
-// Optional: Exclude sensitive/internal fields from JSON responses
-// rideSchema.set("toJSON", {
-//   virtuals: true,
-//   versionKey: false,
-//   transform: (_, ret) => {
-//     delete ret._id;
-//     return ret;
-//   },
-// });
 
 rideSchema.set("toJSON", {
   virtuals: true,
   versionKey: false,
   transform: (_, ret) => {
-    ret.id = ret._id;   // 👈 Keep id field for frontend use
-    delete ret._id;     // Optional: remove raw _id if you prefer clean output
+    ret.id = ret._id;
+    delete ret._id;
     return ret;
   },
 });
 
-
-// ===============================
-// ✅ Model Export
-// ===============================
 const Ride = mongoose.model("Ride", rideSchema);
 export default Ride;

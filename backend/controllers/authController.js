@@ -1,110 +1,103 @@
 import User from "../models/User.js";
-import { generateToken } from "../utils/gentok.js";
-import dotenv from "dotenv";
-import axios from "axios";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-dotenv.config();
-
-const otpSessions = {}; // temporary store for OTP sessions
-
-// ✅ Send OTP
-export const sendOtp = async (req, res) => {
-  const { phone, type, name, email, role } = req.body;
-  const user = await User.findOne({ phone });
-  if (type === "login" && !user) {
-      return res.status(400).json({ message: "User not found. Please sign up first." });
-    }
-
+// ===============================
+// 📌 Register
+// ===============================
+export const register = async (req, res) => {
   try {
-    const response = await axios.get(
-      `https://2factor.in/API/V1/${process.env.OTP_API_KEY}/SMS/${phone}/AUTOGEN`
-    );
+    const { name, email, password, role } = req.body;
 
-    if (response.data.Status === "Success") {
-      const sessionId = response.data.Details;
-      otpSessions[sessionId] = { phone, type, name, email, role };
-
-      res.status(200).json({
-        success: true,
-        message: "OTP sent successfully",
-        sessionId,
-      });
-    } else {
-      res.status(500).json({ message: "Failed to send OTP" });
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Name, email and password are required." });
     }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already registered. Please login." });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: role || "user",
+      kycStatus: "not_started",
+    });
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "30d",
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Account created successfully.",
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        kycStatus: user.kycStatus,
+        profilePhoto: user.profilePhoto || null,
+      },
+    });
   } catch (error) {
-    console.error("OTP Send Error:", error.message);
-    res.status(500).json({ message: "Error sending OTP" });
+    console.error("❌ Register error:", error.message);
+    res.status(500).json({ message: "Server error during registration." });
   }
 };
 
-// ✅ Verify OTP
-export const verifyOtp = async (req, res) => {
-  const { sessionId, otp } = req.body;
-
+// ===============================
+// 🔐 Login
+// ===============================
+export const login = async (req, res) => {
   try {
-    const response = await axios.get(
-      `https://2factor.in/API/V1/${process.env.OTP_API_KEY}/SMS/VERIFY/${sessionId}/${otp}`
-    );
+    const { email, password } = req.body;
 
-    if (response.data.Status === "Success") {
-      const session = otpSessions[sessionId];
-      if (!session)
-        return res.status(400).json({ message: "Session expired or invalid" });
-
-      const { phone, type, name, email, role } = session;
-      let user = await User.findOne({ phone });
-
-      if (type === "signup") {
-        if (user)
-          return res
-            .status(400)
-            .json({ message: "User already exists, please login." });
-
-        if (!name || !role)
-          return res
-            .status(400)
-            .json({ message: "Name and Role are required for signup." });
-
-        user = await User.create({
-          name,
-          phone,
-          email: email || "",
-          role,
-        });
-      }
-
-      if (type === "login") {
-        if (!user)
-          return res
-            .status(400)
-            .json({ message: "User not found, please sign up first." });
-      }
-
-      const token = generateToken(user._id, res);
-      delete otpSessions[sessionId];
-
-      res.status(200).json({
-        success: true,
-        message: "OTP verified successfully",
-        token,
-        user,
-      });
-    } else {
-      res.status(400).json({ message: "Invalid OTP" });
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required." });
     }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "No account found with this email." });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Incorrect password." });
+    }
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "30d",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Logged in successfully.",
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        kycStatus: user.kycStatus,
+        profilePhoto: user.profilePhoto || null,
+      },
+    });
   } catch (error) {
-    console.error("OTP Verify Error:", error.message);
-    res.status(500).json({ message: "Error verifying OTP" });
+    console.error("❌ Login error:", error.message);
+    res.status(500).json({ message: "Server error during login." });
   }
 };
 
-// ✅ Logout
+// ===============================
+// 🚪 Logout
+// ===============================
 export const logout = (req, res) => {
-  res.clearCookie("jwt", {
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV !== "development",
-  });
-  res.status(200).json({ message: "Logged out successfully" });
+  res.status(200).json({ success: true, message: "Logged out successfully." });
 };

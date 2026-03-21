@@ -33,32 +33,33 @@ import express from "express";
 import {
   createRide,
   searchRides,
-  deleteRide,
-  getMyRides,
   getRideById,
-  bookRide,
   requestRide,
   handleRideRequest,
+  getMyRides,
   getMyBookings,
+  completeRide,
+  deleteRide,
+  rateUser,
 } from "../controllers/rideController.js";
+
 import { protect } from "../middlewares/authMiddleware.js";
 import { verifyKyc } from "../middlewares/verifyKyc.js";
 
-
 const router = express.Router();
 
-// ✅ 1️⃣ Static routes first
-router.post("/handle-request", protect, handleRideRequest);
-router.post("/request", protect, requestRide);
-router.get("/my-rides", protect, getMyRides);
+// ── Static routes first ──────────────────────────────────────────────────────
 router.post("/create", protect, verifyKyc, createRide);
-router.get("/search", searchRides);
+router.post("/request", protect, requestRide);
+router.post("/handle-request", protect, handleRideRequest);
+router.post("/rate-user", protect, rateUser);
+router.get("/my-rides", protect, getMyRides);
 router.get("/my-bookings", protect, getMyBookings);
+router.get("/search", searchRides);
 
-// ✅ 2️⃣ Dynamic routes after static ones
+// ── Dynamic routes after ─────────────────────────────────────────────────────
+router.patch("/complete/:id", protect, completeRide);
 router.delete("/:id", protect, deleteRide);
-router.post("/book/:id", protect, bookRide);
 router.get("/:id", getRideById);
-
 
 export default router;
