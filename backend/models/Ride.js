@@ -105,12 +105,22 @@ const rideSchema = new mongoose.Schema(
 
     // ── Stopover pricing ─────────────────────────────
     // Price per segment e.g. A→B ₹70, B→C ₹100
+    // ── Stopover pricing ─────────────────────────────────────────────
     stopoverPrices: {
       type: [
         {
-          from: { type: String },
-          to: { type: String },
-          price: { type: Number },
+          fromName: { type: String },   // e.g. "Noida"
+          toName: { type: String },   // e.g. "Farah"
+          fromCoordinates: {
+            lat: { type: Number },
+            lng: { type: Number },
+          },
+          toCoordinates: {
+            lat: { type: Number },
+            lng: { type: Number },
+          },
+          price: { type: Number },   // ₹ for this segment
+          distanceKm: { type: Number },   // approximate km
         },
       ],
       default: [],

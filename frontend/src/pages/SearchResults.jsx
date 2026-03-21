@@ -185,8 +185,8 @@ const SearchResults = () => {
             >
               <div className="flex items-center gap-2.5">
                 <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition ${sortBy === opt.value
-                    ? "border-blue-600 bg-blue-600"
-                    : "border-slate-300 group-hover:border-blue-400"
+                  ? "border-blue-600 bg-blue-600"
+                  : "border-slate-300 group-hover:border-blue-400"
                   }`}>
                   {sortBy === opt.value && (
                     <div className="w-1.5 h-1.5 bg-white rounded-full" />
@@ -227,8 +227,8 @@ const SearchResults = () => {
             >
               <div className="flex items-center gap-2.5">
                 <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition ${timeSlots[slot.key]
-                    ? "border-blue-600 bg-blue-600"
-                    : "border-slate-300 group-hover:border-blue-400"
+                  ? "border-blue-600 bg-blue-600"
+                  : "border-slate-300 group-hover:border-blue-400"
                   }`}>
                   {timeSlots[slot.key] && <Check size={10} className="text-white" />}
                 </div>
@@ -260,8 +260,8 @@ const SearchResults = () => {
             <label key={item.key} className="flex items-center justify-between cursor-pointer group">
               <div className="flex items-center gap-2.5">
                 <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition ${amenities[item.key]
-                    ? "border-blue-600 bg-blue-600"
-                    : "border-slate-300 group-hover:border-blue-400"
+                  ? "border-blue-600 bg-blue-600"
+                  : "border-slate-300 group-hover:border-blue-400"
                   }`}>
                   {amenities[item.key] && <Check size={10} className="text-white" />}
                 </div>
@@ -301,8 +301,8 @@ const SearchResults = () => {
             <label key={item.key} className="flex items-center justify-between cursor-pointer group">
               <div className="flex items-center gap-2.5">
                 <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition ${amenities[item.key]
-                    ? "border-blue-600 bg-blue-600"
-                    : "border-slate-300 group-hover:border-blue-400"
+                  ? "border-blue-600 bg-blue-600"
+                  : "border-slate-300 group-hover:border-blue-400"
                   }`}>
                   {amenities[item.key] && <Check size={10} className="text-white" />}
                 </div>
@@ -368,8 +368,8 @@ const SearchResults = () => {
               type="button"
               onClick={() => setShowMobileFilters(!showMobileFilters)}
               className={`md:hidden flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition ${activeFilterCount > 0
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white border-slate-200 text-slate-600"
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white border-slate-200 text-slate-600"
                 }`}
             >
               <SlidersHorizontal size={15} />
@@ -509,55 +509,89 @@ const SearchResults = () => {
 };
 
 // ── Ride Card — BlaBlaCar style ───────────────────────────────────────────────
+// ── Ride Card — segment-aware ─────────────────────────────────────────────────
 const RideCard = ({ ride, navigate }) => {
   const driver = ride.driver || {};
   const isVerified = driver.kycStatus === "verified";
   const prefs = ride.preferences || {};
 
+  // ── Use segment data if available, fallback to full ride ─────────────────
+  const displayFrom = ride.segmentFrom || ride.from;
+  const displayTo = ride.segmentTo || ride.to;
+  const displayPrice = ride.segmentPrice ?? ride.pricePerSeat;
+
+  // ── Is this a partial segment? ────────────────────────────────────────────
+  const isPartial = !ride.isFullRoute && ride.segmentFrom;
+
   const amenityBadges = [
     ride.bookingPreference === "instant" && {
-      label: "Instant", icon: <Zap size={11} />,
+      label: "Instant",
+      icon: <Zap size={11} />,
       className: "bg-amber-50 text-amber-600 border-amber-200",
     },
     prefs.maxInBack && {
-      label: "Max. 2 in back", icon: <Users size={11} />,
+      label: "Max. 2 in back",
+      icon: <Users size={11} />,
       className: "bg-blue-50 text-blue-600 border-blue-200",
     },
     prefs.smokingAllowed && {
-      label: "Smoking ok", icon: <Cigarette size={11} />,
+      label: "Smoking ok",
+      icon: <Cigarette size={11} />,
       className: "bg-slate-50 text-slate-600 border-slate-200",
     },
     prefs.petsAllowed && {
-      label: "Pets ok", icon: <PawPrint size={11} />,
+      label: "Pets ok",
+      icon: <PawPrint size={11} />,
       className: "bg-green-50 text-green-600 border-green-200",
     },
     prefs.womenOnly && {
-      label: "Women only", icon: <UserCheck size={11} />,
+      label: "Women only",
+      icon: <UserCheck size={11} />,
       className: "bg-pink-50 text-pink-600 border-pink-200",
     },
     ride.acceptsParcels && {
-      label: "Boot space", icon: <Package size={11} />,
+      label: "Boot space",
+      icon: <Package size={11} />,
       className: "bg-indigo-50 text-indigo-600 border-indigo-200",
     },
   ].filter(Boolean);
 
   return (
     <div
-      onClick={() => navigate(`/ride/${ride._id || ride.id}`)}
+      onClick={() => {
+        const segParams = ride.segmentFrom
+          ? `?segFrom=${encodeURIComponent(ride.segmentFrom.name?.split(",")[0])}&segTo=${encodeURIComponent(ride.segmentTo.name?.split(",")[0])}&segPrice=${ride.segmentPrice}`
+          : "";
+        navigate(`/ride/${ride._id || ride.id}${segParams}`);
+      }}
       className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md hover:border-blue-200 transition-all cursor-pointer group"
     >
       <div className="flex items-start gap-4">
 
         {/* ── Route + time ── */}
         <div className="flex-1 min-w-0">
-          {/* Time → duration → time (BlaBlaCar style) */}
+
+          {/* Partial segment badge */}
+          {isPartial && (
+            <div className="flex items-center gap-1.5 mb-2">
+              <span className="bg-blue-50 text-blue-600 border border-blue-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                Partial route
+              </span>
+              <span className="text-slate-400 text-[10px]">
+                Full route: {ride.originalFrom?.name?.split(",")[0]} →{" "}
+                {ride.fullRoute?.to?.name?.split(",")[0]}
+              </span>
+            </div>
+          )}
+
+          {/* Time → segment → time (BlaBlaCar style) */}
           <div className="flex items-center gap-3 mb-3">
             <div className="text-center shrink-0">
               <p className="text-slate-900 font-black text-lg leading-none">
                 {ride.time || "—"}
               </p>
               <p className="text-slate-500 text-xs mt-1 truncate max-w-[80px]">
-                {ride.from?.name?.split(",")[0]}
+                {displayFrom?.name?.split(",")[0] || "—"}
               </p>
             </div>
 
@@ -566,9 +600,11 @@ const RideCard = ({ ride, navigate }) => {
               <div className="flex-1 h-px bg-slate-200 relative">
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span className="bg-white text-slate-400 text-[10px] px-1.5 border border-slate-200 rounded-full whitespace-nowrap">
-                    {ride.stops?.length > 0
-                      ? `${ride.stops.length} stop${ride.stops.length > 1 ? "s" : ""}`
-                      : "Direct"}
+                    {isPartial
+                      ? "Your segment"
+                      : (ride.stops?.length > 0
+                        ? `${ride.stops.length} stop${ride.stops.length > 1 ? "s" : ""}`
+                        : "Direct")}
                   </span>
                 </div>
               </div>
@@ -580,7 +616,7 @@ const RideCard = ({ ride, navigate }) => {
                 {ride.time || "—"}
               </p>
               <p className="text-slate-500 text-xs mt-1 truncate max-w-[80px]">
-                {ride.to?.name?.split(",")[0]}
+                {displayTo?.name?.split(",")[0] || "—"}
               </p>
             </div>
           </div>
@@ -618,9 +654,16 @@ const RideCard = ({ ride, navigate }) => {
         {/* ── Driver + price ── */}
         <div className="flex flex-col items-end gap-3 shrink-0">
           {/* Price */}
-          <p className="text-2xl font-black text-slate-900">
-            ₹{ride.pricePerSeat}
-          </p>
+          <div className="text-right">
+            <p className="text-2xl font-black text-slate-900">
+              ₹{displayPrice}
+            </p>
+            {isPartial && (
+              <p className="text-slate-400 text-[10px] mt-0.5">
+                full route ₹{ride.originalPrice}
+              </p>
+            )}
+          </div>
 
           {/* Driver */}
           <div className="flex items-center gap-2">
@@ -664,22 +707,26 @@ const RideCard = ({ ride, navigate }) => {
         <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-4">
           {ride.bootSpace.smallPrice && (
             <span className="text-xs text-slate-500">
-              Small <span className="font-semibold text-slate-700">₹{ride.bootSpace.smallPrice}</span>
+              Small{" "}
+              <span className="font-semibold text-slate-700">
+                ₹{ride.bootSpace.smallPrice}
+              </span>
             </span>
           )}
           {ride.bootSpace.mediumPrice && (
             <span className="text-xs text-slate-500">
-              Medium <span className="font-semibold text-slate-700">₹{ride.bootSpace.mediumPrice}</span>
+              Medium{" "}
+              <span className="font-semibold text-slate-700">
+                ₹{ride.bootSpace.mediumPrice}
+              </span>
             </span>
           )}
           {ride.bootSpace.largePrice && (
             <span className="text-xs text-slate-500">
-              Large <span className="font-semibold text-slate-700">₹{ride.bootSpace.largePrice}</span>
-            </span>
-          )}
-          {ride.bootSpace.maxWeightKg && (
-            <span className="text-xs text-slate-500">
-              Max <span className="font-semibold text-slate-700">{ride.bootSpace.maxWeightKg}kg</span>
+              Large{" "}
+              <span className="font-semibold text-slate-700">
+                ₹{ride.bootSpace.largePrice}
+              </span>
             </span>
           )}
         </div>

@@ -80,6 +80,9 @@ export const createRide = async (req, res) => {
 // ===============================
 // 🔍 Search Rides
 // ===============================
+// ===============================
+// 🔍 Search Rides (segment-aware)
+// ===============================
 export const searchRides = async (req, res) => {
   try {
     const {
@@ -87,16 +90,9 @@ export const searchRides = async (req, res) => {
       fromLat, fromLng,
       toLat, toLng,
       date, radiusKm = 15,
-      // ── Filter params ──
-      smokingAllowed,
-      petsAllowed,
-      womenOnly,
-      maxInBack,
-      instantOnly,
-      verifiedOnly,
-      acceptsParcels,
-      timeSlot,       // morning | afternoon | evening
-      sortBy,         // earliest | price_asc | rating
+      smokingAllowed, petsAllowed, womenOnly,
+      maxInBack, instantOnly, verifiedOnly,
+      acceptsParcels, sortBy,
     } = req.query;
 
     if (!from || !to) {
@@ -122,7 +118,6 @@ export const searchRides = async (req, res) => {
       ...dateFilter,
     };
 
-    // ── Apply DB-level filters ───────────────────────
     if (instantOnly === "true") dbQuery.bookingPreference = "instant";
     if (acceptsParcels === "true") dbQuery.acceptsParcels = true;
     if (smokingAllowed === "true") dbQuery["preferences.smokingAllowed"] = true;
@@ -137,66 +132,211 @@ export const searchRides = async (req, res) => {
       )
       .sort({ date: 1, time: 1 });
 
-    // ── Radius filter ────────────────────────────────
-    if (useRadius) {
-      const fLat = parseFloat(fromLat);
-      const fLng = parseFloat(fromLng);
-      const tLat = parseFloat(toLat);
-      const tLng = parseFloat(toLng);
-
-      rides = rides.filter((ride) => {
-        const fromPoints = [ride.from, ...ride.stops];
-        const toPoints = [ride.to, ...ride.stops];
-        return (
-          isWithinRadius(fLat, fLng, fromPoints, radius) &&
-          isWithinRadius(tLat, tLng, toPoints, radius)
-        );
-      });
-    } else {
-      rides = rides.filter((ride) => {
-        const fromMatch =
-          ride.from?.name?.toLowerCase().includes(from.toLowerCase()) ||
-          ride.stops?.some((s) =>
-            s.name?.toLowerCase().includes(from.toLowerCase())
-          );
-        const toMatch =
-          ride.to?.name?.toLowerCase().includes(to.toLowerCase()) ||
-          ride.stops?.some((s) =>
-            s.name?.toLowerCase().includes(to.toLowerCase())
-          );
-        return fromMatch && toMatch;
-      });
-    }
-
-    // ── Time slot filter ─────────────────────────────
-    if (timeSlot) {
-      rides = rides.filter((r) => getTimeSlot(r.time) === timeSlot);
-    }
-
-    // ── Verified only filter ─────────────────────────
+    // ── Verified filter ──────────────────────────────
     if (verifiedOnly === "true") {
       rides = rides.filter((r) => r.driver?.kycStatus === "verified");
     }
 
-    // ── Sort ─────────────────────────────────────────
-    if (sortBy === "price_asc") {
-      rides.sort((a, b) => a.pricePerSeat - b.pricePerSeat);
-    } else if (sortBy === "rating") {
-      rides.sort((a, b) => (b.driver?.rating || 0) - (a.driver?.rating || 0));
-    }
-    // default: earliest (already sorted by date/time from DB)
+    // ── Build segment-aware results ──────────────────
+    // Each result represents a SEGMENT of a ride, not the full ride.
+    // e.g. A→B→C ride becomes two results: A→B and B→C (plus A→C)
+    const results = [];
 
-    if (!rides.length) {
+    for (const ride of rides) {
+      // Build all possible segments from this ride
+      // Points: [from, ...stops, to]
+      const allPoints = [
+        {
+          name: ride.from?.name,
+          coordinates: ride.from?.coordinates,
+          isOrigin: true,
+        },
+        ...(ride.stops || []).map((s) => ({
+          name: s.name,
+          coordinates: s.coordinates,
+          isStop: true,
+        })),
+        {
+          name: ride.to?.name,
+          coordinates: ride.to?.coordinates,
+          isDestination: true,
+        },
+      ];
+
+      // Generate all possible pickup→dropoff combinations (in order)
+      for (let i = 0; i < allPoints.length - 1; i++) {
+        for (let j = i + 1; j < allPoints.length; j++) {
+
+          const segFrom = allPoints[i];
+          const segTo = allPoints[j];
+
+          if (!segFrom?.coordinates || !segTo?.coordinates) continue;
+
+          // ── Check if this segment matches search ──
+          let fromMatch = false;
+          let toMatch = false;
+
+          if (useRadius) {
+            const fLat = parseFloat(fromLat);
+            const fLng = parseFloat(fromLng);
+            const tLat = parseFloat(toLat);
+            const tLng = parseFloat(toLng);
+
+            fromMatch = haversineKm(
+              fLat, fLng,
+              segFrom.coordinates.lat,
+              segFrom.coordinates.lng
+            ) <= radius;
+
+            toMatch = haversineKm(
+              tLat, tLng,
+              segTo.coordinates.lat,
+              segTo.coordinates.lng
+            ) <= radius;
+          } else {
+            fromMatch =
+              segFrom.name?.toLowerCase().includes(from.toLowerCase());
+            toMatch =
+              segTo.name?.toLowerCase().includes(to.toLowerCase());
+          }
+
+          if (!fromMatch || !toMatch) continue;
+
+          // ── Find price for this segment ───────────
+          // Check stopoverPrices first, then fall back to pricePerSeat
+          let segmentPrice = ride.pricePerSeat; // default full price
+
+          if (
+            ride.stopoverPrices &&
+            ride.stopoverPrices.length > 0
+          ) {
+            // Direct segment match in stopoverPrices
+            const directMatch = ride.stopoverPrices.find(
+              (sp) =>
+                sp.fromName?.toLowerCase().includes(
+                  segFrom.name?.split(",")[0]?.toLowerCase()
+                ) &&
+                sp.toName?.toLowerCase().includes(
+                  segTo.name?.split(",")[0]?.toLowerCase()
+                )
+            );
+
+            if (directMatch) {
+              segmentPrice = directMatch.price;
+            } else {
+              // Multi-hop: sum up intermediate segments
+              // e.g. A→C = price(A→B) + price(B→C)
+              let totalSegPrice = 0;
+              let found = true;
+
+              for (let k = i; k < j; k++) {
+                const legFrom = allPoints[k];
+                const legTo = allPoints[k + 1];
+
+                const legMatch = ride.stopoverPrices.find(
+                  (sp) =>
+                    sp.fromName?.toLowerCase().includes(
+                      legFrom.name?.split(",")[0]?.toLowerCase()
+                    ) &&
+                    sp.toName?.toLowerCase().includes(
+                      legTo.name?.split(",")[0]?.toLowerCase()
+                    )
+                );
+
+                if (legMatch) {
+                  totalSegPrice += legMatch.price;
+                } else {
+                  found = false;
+                  break;
+                }
+              }
+
+              if (found && totalSegPrice > 0) {
+                segmentPrice = totalSegPrice;
+              }
+            }
+          }
+
+          // ── Build the result object ───────────────
+          results.push({
+            // Full ride data
+            _id: ride._id,
+            id: ride._id,
+            driver: ride.driver,
+            date: ride.date,
+            time: ride.time,
+            availableSeats: ride.availableSeats,
+            bookingPreference: ride.bookingPreference,
+            preferences: ride.preferences,
+            acceptsParcels: ride.acceptsParcels,
+            bootSpace: ride.bootSpace,
+            status: ride.status,
+            stopoverPrices: ride.stopoverPrices,
+
+            // ── Segment-specific fields ──
+            // These override the ride's from/to/price
+            // so the search card shows the right info
+            segmentFrom: {
+              name: segFrom.name,
+              coordinates: segFrom.coordinates,
+            },
+            segmentTo: {
+              name: segTo.name,
+              coordinates: segTo.coordinates,
+            },
+            segmentPrice,
+
+            // Keep original for ride detail page
+            originalFrom: ride.from,
+            originalTo: ride.to,
+            originalPrice: ride.pricePerSeat,
+            fullRoute: {
+              from: ride.from,
+              stops: ride.stops,
+              to: ride.to,
+            },
+
+            // Is this the full route or a partial segment?
+            isFullRoute: i === 0 && j === allPoints.length - 1,
+          });
+        }
+      }
+    }
+
+    // ── Deduplicate: if same ride appears as both
+    //    full route and segment, prefer the segment ──
+    const seen = new Map();
+    const deduped = [];
+
+    for (const result of results) {
+      const key = `${result._id}-${result.segmentFrom?.name}-${result.segmentTo?.name}`;
+      if (!seen.has(key)) {
+        seen.set(key, true);
+        deduped.push(result);
+      }
+    }
+
+    // ── Sort ─────────────────────────────────────────
+    let sorted = deduped;
+    if (sortBy === "price_asc") {
+      sorted = deduped.sort((a, b) => a.segmentPrice - b.segmentPrice);
+    } else if (sortBy === "rating") {
+      sorted = deduped.sort(
+        (a, b) => (b.driver?.rating || 0) - (a.driver?.rating || 0)
+      );
+    }
+    // default: already sorted by date/time from DB
+
+    if (!sorted.length) {
       return res.status(404).json({ message: "No rides found." });
     }
 
-    res.status(200).json(rides);
+    res.status(200).json(sorted);
   } catch (error) {
     console.error("❌ Error searching rides:", error.message);
     res.status(500).json({ message: "Server error." });
   }
 };
-
 // ===============================
 // 🔍 Get Ride by ID
 // ===============================
