@@ -16,12 +16,15 @@ import MyRides from "./pages/MyRides";
 import MyBookings from "./pages/MyBookings";
 import ProfilePage from "./pages/ProfilePage";
 import ParcelTracking from "./pages/ParcelTracking";
+import AboutPage from "./pages/AboutPage";
+import TermsPage from "./pages/TermsPage";
 
 // ── Transporter pages ────────────────────────────────────────────────────────
 import TransporterLogin from "./pages/TransporterLogin";
 import TransporterSignup from "./pages/TransporterSignup";
 import EnterpriseDashboard from "./pages/EnterpriseDashboard";
 import CreateEnterpriseListing from "./pages/CreateEnterpriseListing";
+import ForgotPassword from "./pages/ForgotPassword";
 
 // ── Route guards ─────────────────────────────────────────────────────────────
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -61,7 +64,9 @@ const App = () => {
         {/* ══ Transporter auth ══ */}
         <Route path="/transporter/login" element={<TransporterLogin />} />
         <Route path="/transporter/signup" element={<TransporterSignup />} />
-
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/terms" element={<TermsPage />} />
         {/* ══ Auth required ══ */}
         <Route
           path="/my-bookings"

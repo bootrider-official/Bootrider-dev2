@@ -12,7 +12,9 @@ import featureCarpool from "../assets/feature-carpool.png";
 import featureParcel from "../assets/feature-parcel.png";
 import enterpriseTruck from "../assets/enterprise-truck.png";
 import ChatWidget from "../components/ChatWidget";
-
+import { Link } from "react-router-dom";
+import { X, Mail } from "lucide-react"; // add X and Mail if not already there
+import logo from "../assets/logo.png";
 /* ─── Scroll-reveal hook ─────────────────────────────────── */
 const useScrollReveal = (options = {}) => {
   const ref = useRef(null);
@@ -125,19 +127,20 @@ const LandingPage = () => {
   }, []);
 
   // ── Scroll-reveal refs ──
-  const trustRef       = useScrollReveal();
-  const passengerText  = useScrollReveal();
-  const passengerImg   = useScrollReveal({ threshold: 0.1 });
-  const parcelImg      = useScrollReveal({ threshold: 0.1 });
-  const parcelText     = useScrollReveal();
-  const driverHeader   = useScrollReveal();
-  const driverCards    = useScrollReveal();
-  const driverCta      = useScrollReveal();
-  const trustHeader    = useScrollReveal();
-  const trustCards     = useScrollReveal();
-  const enterpriseRef  = useScrollReveal({ threshold: 0.1 });
-  const envRef         = useScrollReveal();
-  const ctaRef         = useScrollReveal();
+  const trustRef = useScrollReveal();
+  const passengerText = useScrollReveal();
+  const passengerImg = useScrollReveal({ threshold: 0.1 });
+  const parcelImg = useScrollReveal({ threshold: 0.1 });
+  const parcelText = useScrollReveal();
+  const driverHeader = useScrollReveal();
+  const driverCards = useScrollReveal();
+  const driverCta = useScrollReveal();
+  const trustHeader = useScrollReveal();
+  const trustCards = useScrollReveal();
+  const enterpriseRef = useScrollReveal({ threshold: 0.1 });
+  const envRef = useScrollReveal();
+  const ctaRef = useScrollReveal();
+  const [showContact, setShowContact] = useState(false);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -658,46 +661,167 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
+      {/* ══════════════════════════════════════════
+    CONTACT MODAL
+══════════════════════════════════════════ */}
+      {showContact && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowContact(false)}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+
+          {/* Modal */}
+          <div
+            className="relative bg-[#0a0a0f] border border-white/10 rounded-3xl p-10 max-w-md w-full text-center shadow-2xl z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close */}
+            <button
+              onClick={() => setShowContact(false)}
+              className="absolute top-4 right-4 w-8 h-8 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition"
+            >
+              <X size={14} />
+            </button>
+
+            {/* Logo */}
+            <img src={logo} alt="Bootrider" className="h-10 w-auto mx-auto mb-6 object-contain" />
+
+            <div className="w-14 h-14 bg-blue-500/10 border border-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-5">
+              <Mail size={22} className="text-blue-400" />
+            </div>
+
+            <h2 className="text-2xl font-black text-white mb-2">Contact Us</h2>
+            <p className="text-gray-500 text-sm mb-8 leading-relaxed">
+              Have a question, feedback or partnership inquiry?
+              We'd love to hear from you.
+            </p>
+
+
+            <a href="mailto:[EMAIL_ADDRESS]"
+              className="flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-4 rounded-xl transition shadow-lg shadow-blue-500/20 mb-4"
+            >
+              <Mail size={16} />
+              bootrider.in@gmail.com
+            </a>
+
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                <p className="text-white text-xs font-semibold mb-1">Response time</p>
+                <p className="text-gray-400 text-xs">Within 24–48 hours</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                <p className="text-white text-xs font-semibold mb-1">Support hours</p>
+                <p className="text-gray-400 text-xs">Mon–Sat, 9am–6pm</p>
+              </div>
+            </div>
+
+            <p className="text-gray-600 text-xs mt-6">
+              For urgent issues, include "URGENT" in your subject line.
+            </p>
+          </div>
+        </div>
+      )
+      }
 
       {/* ══════════════════════════════════════════
-          FOOTER
-      ══════════════════════════════════════════ */}
+    FOOTER
+══════════════════════════════════════════ */}
       <footer className="bg-slate-900 py-12 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+
+            {/* Brand */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Car size={14} className="text-white" />
-                </div>
-                <span className="text-white font-black text-lg">
-                  Boot<span className="text-blue-400">Rider</span>
-                </span>
-              </div>
+              <img src={logo} alt="Bootrider" className="h-8 w-auto object-contain mb-4" />
               <p className="text-slate-400 text-sm leading-relaxed">
                 India's smartest carpooling and parcel sharing platform.
               </p>
             </div>
-            {[
-              { title: "Riders", links: ["Find a ride", "Send a parcel", "How it works", "Safety"] },
-              { title: "Drivers", links: ["Offer a ride", "Register boot space", "Earnings", "KYC verification"] },
-              { title: "Company", links: ["About us", "Blog", "Contact", "Terms & Privacy"] },
-            ].map((col) => (
-              <div key={col.title}>
-                <p className="text-white font-semibold text-sm mb-3">{col.title}</p>
-                <ul className="space-y-2">
-                  {col.links.map((link) => (
-                    <li key={link}>
-                      <span className="text-slate-400 text-sm hover:text-white cursor-pointer transition">{link}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+
+            {/* Riders */}
+            <div>
+              <p className="text-white font-semibold text-sm mb-3">Riders</p>
+              <ul className="space-y-2">
+                {[
+                  { label: "Find a ride", to: "/search-results" },
+                  { label: "Send a parcel", to: "/search-results?mode=parcel" },
+                  { label: "How it works", to: "/about" },
+                  { label: "Safety", to: "/about#safety" },
+                ].map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      to={link.to}
+                      className="text-slate-400 text-sm hover:text-white transition"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Drivers */}
+            <div>
+              <p className="text-white font-semibold text-sm mb-3">Drivers</p>
+              <ul className="space-y-2">
+                {[
+                  { label: "Offer a ride", to: "/create-rides" },
+                  { label: "Register boot space", to: "/create-rides" },
+                  { label: "Earnings", to: "/about" },
+                  { label: "KYC verification", to: "/kyc-form" },
+                ].map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      to={link.to}
+                      className="text-slate-400 text-sm hover:text-white transition"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Company */}
+            <div>
+              <p className="text-white font-semibold text-sm mb-3">Company</p>
+              <ul className="space-y-2">
+                <li>
+                  <Link to="/about" className="text-slate-400 text-sm hover:text-white transition">
+                    About us
+                  </Link>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setShowContact(true)}
+                    className="text-slate-400 text-sm hover:text-white transition text-left"
+                  >
+                    Contact us
+                  </button>
+                </li>
+                <li>
+                  <Link to="/terms" className="text-slate-400 text-sm hover:text-white transition">
+                    Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/terms#privacy" className="text-slate-400 text-sm hover:text-white transition">
+                    Privacy Policy
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
+
           <div className="border-t border-slate-800 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-slate-500 text-sm">© 2025 Bootrider. Made with ❤️ for NCR commuters.</p>
-            <p className="text-slate-600 text-xs">Delhi · Noida · Gurgaon · Mathura · Agra</p>
+            <p className="text-slate-500 text-sm">
+              © 2025 Bootrider. Made with ❤️ for NCR commuters.
+            </p>
+            <p className="text-slate-600 text-xs">
+              Delhi · Noida · Gurgaon · Mathura · Agra
+            </p>
           </div>
         </div>
       </footer>
@@ -705,7 +829,7 @@ const LandingPage = () => {
       {/* ── ChatWidget — floating bottom-right ── */}
       <ChatWidget />
 
-    </div>
+    </div >
   );
 };
 
