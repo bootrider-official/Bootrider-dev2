@@ -90,7 +90,7 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://bootrider-dev2-br-git-main-bootrider-officials-projects.vercel.app/"
+    "https://bootrider-dev2-br.vercel.app/"
   ],
   credentials: true
 }));
