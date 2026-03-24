@@ -87,7 +87,13 @@ dotenv.config(); // ✅ only once
 
 const app = express();
 
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://bootrider-dev2-git-main-bootrider-officials-projects.vercel.app"
+  ],
+  credentials: true
+}));
 app.use(express.json());
 app.use(morgan("dev"));
 
