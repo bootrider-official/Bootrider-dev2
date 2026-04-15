@@ -75,7 +75,7 @@ export const sendOtpHandler = async (req, res) => {
       message: `OTP sent to +91 ${phone}. Valid for 10 minutes.`,
     });
   } catch (error) {
-    console.error("❌ Send OTP error:", error.message);
+    console.error("❌ FULL ERROR:", error);
     res.status(500).json({ message: error.message || "Failed to send OTP." });
   }
 };

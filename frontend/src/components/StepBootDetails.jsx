@@ -67,7 +67,7 @@ const StepBootDetails = ({ data, onUpdate }) => {
                                     onChange={(e) =>
                                         update(item.key, e.target.value ? parseFloat(e.target.value) : null)
                                     }
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-7 pr-3 py-3 text-white text-sm focus:outline-none focus:border-blue-500/40 transition placeholder-gray-600"
+                                    className="w-full bg-black/100 border border-white/10 rounded-xl pl-7 pr-3 py-3 text-white text-sm focus:outline-none focus:border-blue-500/40 transition placeholder-gray-600"
                                 />
                             </div>
                         </div>
@@ -93,14 +93,14 @@ const StepBootDetails = ({ data, onUpdate }) => {
                         type="number"
                         min="1"
                         placeholder="e.g. 20"
-                        value={bootSpace.maxWeightKg || ""}
+                        value={bootSpace.maxWeightKg ?? ""}
                         onChange={(e) =>
                             update(
                                 "maxWeightKg",
                                 e.target.value ? parseFloat(e.target.value) : null
                             )
                         }
-                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-3 py-3 text-white text-sm focus:outline-none focus:border-blue-500/40 transition placeholder-gray-600"
+                        className="w-full bg-black/100 border border-white/10 rounded-xl pl-9 pr-3 py-3 text-white text-sm focus:outline-none focus:border-blue-500/40 transition placeholder-gray-600"
                     />
                 </div>
             </div>

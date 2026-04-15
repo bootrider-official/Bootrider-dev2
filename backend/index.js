@@ -90,7 +90,9 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://bootrider-dev2-br.vercel.app"
+    "http://localhost:5174",
+    "https://bootrider-dev2-br.vercel.app",
+    
   ],
   credentials: true
 }));

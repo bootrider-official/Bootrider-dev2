@@ -392,25 +392,26 @@ const Login = () => {
                   </div>
 
                   {/* OTP boxes */}
-                  <div className="flex gap-3">
-                    {otp.map((digit, index) => (
-                      <input
-                        key={index}
-                        ref={otpRefs[index]}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleOtpChange(index, e.target.value)}
-                        onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                        onPaste={index === 0 ? handleOtpPaste : undefined}
-                        className={`flex-1 h-16 text-center text-2xl font-bold rounded-xl border-2 bg-white/5 text-white focus:outline-none transition ${digit
-                            ? "border-blue-500 bg-blue-500/10"
-                            : "border-white/10 focus:border-blue-500/50"
-                          }`}
-                      />
-                    ))}
-                  </div>
+                  <div className="flex justify-center gap-3">
+  {otp.map((digit, index) => (
+    <input
+      key={index}
+      ref={otpRefs[index]}
+      type="text"
+      inputMode="numeric"
+      maxLength={1}
+      value={digit}
+      onChange={(e) => handleOtpChange(index, e.target.value)}
+      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+      onPaste={index === 0 ? handleOtpPaste : undefined}
+      className={`w-12 sm:w-14 h-14 sm:h-16 text-center text-2xl font-bold rounded-xl border-2 bg-white/5 text-white focus:outline-none transition ${
+        digit
+          ? "border-blue-500 bg-blue-500/10"
+          : "border-white/10 focus:border-blue-500/50"
+      }`}
+    />
+  ))}
+</div>
 
                   {error && (
                     <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">

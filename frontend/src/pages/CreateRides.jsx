@@ -15,8 +15,8 @@ import StepBookingPreference from "../components/StepBookingPreference";
 import StepBootRegister from "../components/StepBootRegister";
 import StepBootDetails from "../components/StepBootDetails";
 import StepSummary from "../components/StepSummary";
-
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import { BASE_URL } from "../utils/constants";
+// const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 // ── Step definitions ─────────────────────────────────────────────────────────
 const BASE_STEPS = [

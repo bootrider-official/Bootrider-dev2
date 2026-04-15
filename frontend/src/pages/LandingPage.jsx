@@ -344,8 +344,8 @@ const LandingPage = () => {
         <div ref={trustRef} className="stagger-children max-w-5xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
-              { value: "2,400+", label: "Active drivers" },
-              { value: "18,000+", label: "Parcels delivered" },
+              { value: "x+", label: "Active drivers" },
+              { value: "x+", label: "Parcels delivered" },
               { value: "60%", label: "Cheaper than courier" },
               { value: "4.8★", label: "Average rating" },
             ].map((stat) => (

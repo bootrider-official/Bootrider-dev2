@@ -100,8 +100,8 @@ import {
   ChevronRight, Car, CheckCircle, XCircle,
   Loader, AlertCircle, Navigation, Star
 } from "lucide-react";
-
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import { BASE_URL } from "../utils/constants";
+// const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const MyBookings = () => {
   const { token } = useSelector((state) => state.auth);
