@@ -92,7 +92,7 @@ app.use(cors({
     "http://localhost:5173",
     "http://localhost:5174",
     "https://bootrider-dev2-br.vercel.app",
-    "https://bootrider.online/*"
+    "https://bootrider.online"
   ],
   credentials: true
 }));
