@@ -86,6 +86,8 @@ import enterpriseRoutes from "./routes/enterpriseRoutes.js";
 dotenv.config(); // ✅ only once
 
 const app = express();
+const cors = require("cors");
+
 
 app.use(cors({
   origin: [
