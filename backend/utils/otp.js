@@ -1,5 +1,5 @@
 import axios from "axios";
-
+//change to 2factor.in for production
 // ── In-memory OTP store ───────────────────────────────────────────────────────
 // { phone: { otp, expiresAt, attempts } }
 const otpStore = new Map();
