@@ -15,7 +15,7 @@ import geocodeRoutes from "./routes/geocode.js";
 import parcelRoutes from "./routes/parcelRoutes.js";
 import enterpriseRoutes from "./routes/enterpriseRoutes.js";
 
-dotenv.config(); //  only once
+dotenv.config(); 
 
 const app = express();
 // const cors = require("cors");
