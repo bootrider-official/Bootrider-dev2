@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 
 import Navbar from "./components/Navbar";
-
+import PublicRoute from "./components/PublicRoute";
 // ── User pages ───────────────────────────────────────────────────────────────
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
@@ -56,8 +56,8 @@ const App = () => {
 
         {/* ══ Public routes ══ */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={ <PublicRoute> <Login /></PublicRoute> }/>
+        <Route path="/signup" element={<PublicRoute> <Signup /></PublicRoute>}/>
         <Route path="/search-results" element={<SearchResults />} />
         <Route path="/ride/:id" element={<RideDetails />} />
 

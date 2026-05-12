@@ -3,7 +3,7 @@ import cloudinary from "../config/cloudinary.js";
 import getDataUri from "../utils/datauri.js";
 
 // ===============================
-// 🚗 Create/Update Transporter Profile (KYC)
+//  Create/Update Transporter Profile (KYC)
 // ===============================
 export const createOrUpdateTransporterProfile = async (req, res) => {
   try {
@@ -42,7 +42,7 @@ export const createOrUpdateTransporterProfile = async (req, res) => {
       user,
     });
   } catch (error) {
-    console.error("❌ Error updating transporter profile:");
+    console.error("Error updating transporter profile:");
     console.error("Message:", error.message);
     console.error("Full error object:", JSON.stringify(error, null, 2));
     res.status(500).json({
@@ -53,7 +53,7 @@ export const createOrUpdateTransporterProfile = async (req, res) => {
 };
 
 // ===============================
-// 👤 Get Own Profile
+//  Get Own Profile
 // ===============================
 export const getProfile = async (req, res) => {
   try {
@@ -61,12 +61,12 @@ export const getProfile = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found." });
     res.status(200).json(user);
   } catch (error) {
-    console.error("❌ Error fetching profile:", error.message);
+    console.error(" Error fetching profile:", error.message);
     res.status(500).json({ message: "Server error." });
   }
 };
 // ===============================
-// ✅ Simple KYC for normal users
+// Simple KYC for normal users
 // ===============================
 export const verifyUserKyc = async (req, res) => {
   try {
@@ -155,7 +155,7 @@ export const updateProfile = async (req, res) => {
 };
 
 // ===============================
-// 🔍 Get Any User Profile by ID (auth required)
+// Get Any User Profile by ID (auth required)
 // ===============================
 export const getUserById = async (req, res) => {
   try {
@@ -169,7 +169,7 @@ export const getUserById = async (req, res) => {
 
     res.status(200).json(user);
   } catch (error) {
-    console.error("❌ Error fetching user:", error.message);
+    console.error(" Error fetching user:", error.message);
     res.status(500).json({ message: "Server error." });
   }
 };

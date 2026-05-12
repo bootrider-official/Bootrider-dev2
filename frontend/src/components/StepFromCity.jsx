@@ -225,7 +225,7 @@ const StepFromCity = ({ data, onUpdate }) => {
       </div>
 
       {/* ── Right: Map ── */}
-      <div className="lg:w-[55%] min-h-[320px] lg:min-h-full relative">
+      <div className="lg:w-[55%] min-h-[320px] lg:min-h-full relative z-0">
         <MapContainer
           center={coords ? [coords.lat, coords.lng] : [28.6139, 77.2090]}
           zoom={coords ? 13 : 6}

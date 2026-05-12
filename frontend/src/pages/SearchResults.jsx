@@ -518,7 +518,8 @@ const RideCard = ({ ride, navigate }) => {
   // ── Use segment data if available, fallback to full ride ─────────────────
   const displayFrom = ride.segmentFrom || ride.from;
   const displayTo = ride.segmentTo || ride.to;
-  const displayPrice = ride.segmentPrice ?? ride.pricePerSeat;
+  const displayPrice = ride.segmentPrice  ?? ride.pricePerSeat;
+  console.log(ride.segmentPrice, ride.pricePerSeat);
 
   // ── Is this a partial segment? ────────────────────────────────────────────
   const isPartial = !ride.isFullRoute && ride.segmentFrom;

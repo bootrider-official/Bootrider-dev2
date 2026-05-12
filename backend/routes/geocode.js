@@ -20,8 +20,8 @@ router.get("/", async (req, res) => {
         limit: 1,
       },
       headers: {
-        // ✅ Replace with your real app & contact info
-        "User-Agent": "BootriderApp/1.0 (contact@bootrider.in)",
+        // Replace with your real app & contact info
+        "User-Agent": "BootriderApp/1.0 (bootrider.in@gmail.com)",
         "Accept-Language": "en",
       },
       timeout: 10000, // 10s safety

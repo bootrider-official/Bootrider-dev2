@@ -121,6 +121,7 @@ const StepSummary = ({ data }) => {
             style={{ width: "100%", height: "100%" }}
             zoomControl={false}
             dragging={false}
+            relative z-0
             scrollWheelZoom={false}
             doubleClickZoom={false}
           >

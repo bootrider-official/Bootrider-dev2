@@ -864,10 +864,11 @@ const Signup = () => {
                     onChange={(e) => handleOtpChange(index, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(index, e)}
                     onPaste={index === 0 ? handleOtpPaste : undefined}
-                    className={`flex-1 h-16 text-center text-2xl font-bold rounded-xl border-2 bg-white/5 text-white focus:outline-none transition ${digit
-                        ? "border-blue-500 bg-blue-500/10"
-                        : "border-white/10 focus:border-blue-500/50"
-                      }`}
+                  className={`w-14 h-14 text-center text-xl font-bold rounded-xl border-2 bg-white/5 text-white focus:outline-none transition ${
+  digit
+    ? "border-blue-500 bg-blue-500/10"
+    : "border-white/10 focus:border-blue-500/50"
+}`}
                   />
                 ))}
               </div>

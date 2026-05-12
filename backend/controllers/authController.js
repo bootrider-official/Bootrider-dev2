@@ -141,8 +141,9 @@ export const register = async (req, res) => {
 };
 
 // ===============================
-// 🔐 Login — Email + Password
+// Login — >Email + Password
 // ===============================
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -180,13 +181,13 @@ export const login = async (req, res) => {
       user: safeUser(user),
     });
   } catch (error) {
-    console.error("❌ Login error:", error.message);
+    console.error("Login error:", error.message);
     res.status(500).json({ message: "Server error during login." });
   }
 };
 
 // ===============================
-// 📱 Login — Phone + OTP
+//  Login — Phone + OTP
 // ===============================
 export const loginWithOtp = async (req, res) => {
   try {
@@ -226,15 +227,12 @@ export const loginWithOtp = async (req, res) => {
       user: safeUser(user),
     });
   } catch (error) {
-    console.error("❌ OTP login error:", error.message);
+    console.error("OTP login error:", error.message);
     res.status(500).json({ message: "Server error during login." });
   }
 };
 
-// ===============================
-// 🔑 Forgot Password — Send OTP
-// (handled by sendOtpHandler with purpose="forgot_password")
-// ===============================
+
 
 // ===============================
 // 🔑 Reset Password — Verify OTP + Set New Password
@@ -285,7 +283,7 @@ export const resetPassword = async (req, res) => {
 };
 
 // ===============================
-// 🚪 Logout
+//  Logout
 // ===============================
 export const logout = (req, res) => {
   res.status(200).json({ success: true, message: "Logged out successfully." });

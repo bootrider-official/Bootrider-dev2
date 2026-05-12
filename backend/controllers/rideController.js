@@ -32,7 +32,7 @@ const getTimeSlot = (timeStr) => {
 };
 
 // ===============================
-// 📌 Create Ride
+//  Create Ride
 // ===============================
 export const createRide = async (req, res) => {
   try {
@@ -77,11 +77,9 @@ export const createRide = async (req, res) => {
   }
 };
 
+
 // ===============================
-// 🔍 Search Rides
-// ===============================
-// ===============================
-// 🔍 Search Rides (segment-aware)
+// Search Rides 
 // ===============================
 export const searchRides = async (req, res) => {
   try {
@@ -94,7 +92,7 @@ export const searchRides = async (req, res) => {
       maxInBack, instantOnly, verifiedOnly,
       acceptsParcels, sortBy,
     } = req.query;
-
+const { userId } = req.query;
     if (!from || !to) {
       return res.status(400).json({ message: "Please provide from and to." });
     }
@@ -112,11 +110,27 @@ export const searchRides = async (req, res) => {
     const radius = parseFloat(radiusKm);
 
     // ── Base DB query ────────────────────────────────
-    const dbQuery = {
-      status: "active",
-      availableSeats: { $gt: 0 },
-      ...dateFilter,
-    };
+    // const dbQuery = {
+    //   status: "active",
+    //   availableSeats: { $gt: 0 },
+    //   ...dateFilter,
+    // };
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const dbQuery = {
+  status: "active",
+  availableSeats: { $gt: 0 },
+
+  // today onwards if no date selected
+  date: dateFilter.date || { $gte: today },
+};
+
+// Exclude current user's own rides
+if (req.user?._id) {
+  dbQuery.driver = { $ne: req.user._id };
+}
 
     if (instantOnly === "true") dbQuery.bookingPreference = "instant";
     if (acceptsParcels === "true") dbQuery.acceptsParcels = true;
@@ -271,6 +285,7 @@ export const searchRides = async (req, res) => {
             acceptsParcels: ride.acceptsParcels,
             bootSpace: ride.bootSpace,
             status: ride.status,
+            pricePerSeat: ride.pricePerSeat,
             stopoverPrices: ride.stopoverPrices,
 
             // ── Segment-specific fields ──
@@ -333,7 +348,7 @@ export const searchRides = async (req, res) => {
 
     res.status(200).json(sorted);
   } catch (error) {
-    console.error("❌ Error searching rides:", error.message);
+    console.error("Error searching rides:", error.message);
     res.status(500).json({ message: "Server error." });
   }
 };
@@ -358,13 +373,13 @@ export const getRideById = async (req, res) => {
     if (!ride) return res.status(404).json({ message: "Ride not found." });
     res.status(200).json(ride);
   } catch (error) {
-    console.error("❌ Error fetching ride:", error.message);
+    console.error("Error fetching ride:", error.message);
     res.status(500).json({ message: "Server error." });
   }
 };
 
 // ===============================
-// 🚗 Request a Ride
+//  Request a Ride
 // ===============================
 export const requestRide = async (req, res) => {
   try {
@@ -405,7 +420,7 @@ export const requestRide = async (req, res) => {
 };
 
 // ===============================
-// ✅ Approve / ❌ Reject Request
+//  Approve / Reject Request
 // ===============================
 export const handleRideRequest = async (req, res) => {
   try {
@@ -461,7 +476,7 @@ export const handleRideRequest = async (req, res) => {
     await ride.save();
     res.status(200).json({ message: `Request ${action}ed successfully.`, ride });
   } catch (err) {
-    console.error("❌ Error handling request:", err.message);
+    console.error("Error handling request:", err.message);
     res.status(500).json({ message: "Server error." });
   }
 };
@@ -479,13 +494,13 @@ export const getMyRides = async (req, res) => {
 
     res.status(200).json(rides);
   } catch (error) {
-    console.error("❌ Error fetching my rides:", error.message);
+    console.error(" Error fetching my rides:", error.message);
     res.status(500).json({ message: "Server error." });
   }
 };
 
 // ===============================
-// 📦 Get My Bookings (passenger)
+// Get My Bookings (passenger)
 // ===============================
 export const getMyBookings = async (req, res) => {
   try {
@@ -574,7 +589,7 @@ export const deleteRide = async (req, res) => {
 };
 
 // ===============================
-// ⭐ Rate a User
+//  Rate a User
 // ===============================
 export const rateUser = async (req, res) => {
   try {

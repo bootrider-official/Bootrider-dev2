@@ -29,12 +29,13 @@
 
 
 import axios from "axios";
+import { BASE_URL } from "./constants";
 
 export const geocodeCity = async (cityName) => {
   if (!cityName) return null;
 
   try {
-    const response = await axios.get("http://localhost:5000/api/geocode", {
+    const response = await axios.get(`${BASE_URL}/api/geocode`, {
       params: { city: cityName },
     });
 

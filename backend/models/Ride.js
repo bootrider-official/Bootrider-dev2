@@ -85,7 +85,7 @@ const rideSchema = new mongoose.Schema(
       default: "review",
     },
 
-    // ── Ride preferences (BlaBlaCar style) ──────────
+    // ── Ride preferences  ──────────
     preferences: {
       smokingAllowed: { type: Boolean, default: false },
       petsAllowed: { type: Boolean, default: false },

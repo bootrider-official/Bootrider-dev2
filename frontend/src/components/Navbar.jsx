@@ -9,7 +9,7 @@ import logo from "../assets/logo.png";
 import {
   Menu, X, ShieldCheck, ShieldAlert, Shield,
   LogOut, Car, PackageSearch, LayoutDashboard,
-  Plus, ChevronDown, Truck
+  Plus, ChevronDown, Truck,User
 } from "lucide-react";
 
 const Navbar = () => {
@@ -171,13 +171,23 @@ const Navbar = () => {
                             Create Ride
                           </Link>
                           <Link
+  to="/profile"
+  onClick={() => setDropdownOpen(false)}
+  className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition"
+>
+  <User size={14} />
+  My Profile
+</Link>
+                          <Link
                             to="/my-rides"
                             onClick={() => setDropdownOpen(false)}
                             className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition"
                           >
+                          
                             <Car size={14} />
                             My Rides
                           </Link>
+                          
                         </>
                       )}
                       <button
@@ -282,6 +292,7 @@ const Navbar = () => {
               >
                 Sign in
               </Link>
+              
               <Link
                 to="/signup"
                 onClick={() => setMenuOpen(false)}

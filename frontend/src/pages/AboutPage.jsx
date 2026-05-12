@@ -484,13 +484,13 @@ const AboutPage = () => {
                         Join thousands of drivers and senders across Delhi NCR.
                     </p>
                     <div className="flex flex-wrap gap-4 justify-center">
-                        <button
+                        {/* <button
                             onClick={() => navigate("/signup")}
                             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-4 rounded-xl transition shadow-lg shadow-blue-500/20"
                         >
                             Create free account
                             <ArrowRight size={16} />
-                        </button>
+                        </button> */}
                         <button
                             onClick={() => navigate("/search-results")}
                             className="flex items-center gap-2 border border-white/10 hover:bg-white/5 text-white font-semibold px-8 py-4 rounded-xl transition"

@@ -4,7 +4,7 @@ import {
     getProfile,
     updateProfile,
     getUserById,
-    verifyUserKyc,          // ← add this
+    verifyUserKyc,         
 } from "../controllers/userController.js";
 import { protect } from "../middlewares/authMiddleware.js";
 import { singleUpload } from "../middlewares/multer.js";
